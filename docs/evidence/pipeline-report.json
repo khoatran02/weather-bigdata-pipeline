@@ -1,0 +1,187 @@
+{
+  "live": {
+    "bronze": 958,
+    "silver": 958,
+    "quarantine": 0,
+    "duplicates_merged": 0,
+    "bronze_bytes": 87857,
+    "silver_bytes": 132426,
+    "reject_reasons": [],
+    "qc_flags": [],
+    "sums": {
+      "temperature_c": 958,
+      "dew_point_c": 406,
+      "relative_humidity": 958,
+      "wind_dir_deg": 343,
+      "wind_kmh": 957,
+      "gust_kmh": 0,
+      "pressure_hpa": 958,
+      "visibility_km": 406,
+      "rain_raw": 548
+    }
+  },
+  "history": {
+    "bronze": 2428936,
+    "silver": 2426741,
+    "quarantine": 2186,
+    "duplicates_merged": 9,
+    "bronze_bytes": 133599797,
+    "silver_bytes": 121639701,
+    "reject_reasons": [
+      {
+        "reject_reason": "no_usable_measurement",
+        "count": 2186
+      }
+    ],
+    "qc_flags": [
+      {
+        "flag": "range:pressure_hpa",
+        "count": 325
+      },
+      {
+        "flag": "range:wind_kmh",
+        "count": 26
+      },
+      {
+        "flag": "range:temperature_c",
+        "count": 5
+      },
+      {
+        "flag": "range:gust_kmh",
+        "count": 3
+      }
+    ],
+    "sums": {
+      "temperature_c": 2347274,
+      "dew_point_c": 2299640,
+      "relative_humidity": 2299586,
+      "wind_dir_deg": 2138203,
+      "wind_kmh": 2391540,
+      "gust_kmh": 8231,
+      "pressure_hpa": 1884008,
+      "visibility_km": 2419662,
+      "rain_raw": 0
+    }
+  },
+  "offline_qc": {
+    "is_spike": 31,
+    "is_climate_outlier": 36,
+    "is_wind_error": 19911
+  },
+  "trends": [
+    {
+      "station": "VVDN",
+      "celsius_per_decade": 0.3865619571195594,
+      "r2": 0.531861055111666,
+      "years": 31,
+      "first_year": 1992,
+      "last_year": 2025
+    },
+    {
+      "station": "VVPB",
+      "celsius_per_decade": 0.5301729930285842,
+      "r2": 0.4632820992262626,
+      "years": 30,
+      "first_year": 1993,
+      "last_year": 2025
+    },
+    {
+      "station": "VVNB",
+      "celsius_per_decade": 0.290026839097497,
+      "r2": 0.3498901172361976,
+      "years": 31,
+      "first_year": 1990,
+      "last_year": 2025
+    },
+    {
+      "station": "VVTS",
+      "celsius_per_decade": 0.24307014409375607,
+      "r2": 0.3654160418064762,
+      "years": 36,
+      "first_year": 1980,
+      "last_year": 2025
+    }
+  ],
+  "thingspeak_vs_metar": {
+    "rows": 552,
+    "matched": 552,
+    "temperature": 0.9855072463768116,
+    "humidity": 0.9728260869565217,
+    "pressure": 0.9891304347826086,
+    "wind": 0.9619565217391305
+  },
+  "model_metrics": [
+    {
+      "horizon": 1,
+      "model": "gradient_boosted_trees",
+      "method": "diurnal_baseline",
+      "mae": 0.5902328996176857,
+      "rmse": 0.831257787929066,
+      "n": 96406
+    },
+    {
+      "horizon": 1,
+      "model": "gradient_boosted_trees",
+      "method": "persistence",
+      "mae": 0.6133539406261022,
+      "rmse": 0.9849762457420268,
+      "n": 96406
+    },
+    {
+      "horizon": 1,
+      "model": "gradient_boosted_trees",
+      "method": "selected_model",
+      "mae": 0.5472685219150011,
+      "rmse": 0.771487471600549,
+      "n": 96406
+    },
+    {
+      "horizon": 3,
+      "model": "gradient_boosted_trees",
+      "method": "diurnal_baseline",
+      "mae": 0.9720707913002052,
+      "rmse": 1.3416775410603583,
+      "n": 96174
+    },
+    {
+      "horizon": 3,
+      "model": "gradient_boosted_trees",
+      "method": "persistence",
+      "mae": 1.474941252313515,
+      "rmse": 2.0538303389727095,
+      "n": 96174
+    },
+    {
+      "horizon": 3,
+      "model": "gradient_boosted_trees",
+      "method": "selected_model",
+      "mae": 0.8477723108339913,
+      "rmse": 1.1781770939986302,
+      "n": 96174
+    },
+    {
+      "horizon": 6,
+      "model": "gradient_boosted_trees",
+      "method": "diurnal_baseline",
+      "mae": 1.3453027572023493,
+      "rmse": 1.8158290560196424,
+      "n": 95960
+    },
+    {
+      "horizon": 6,
+      "model": "gradient_boosted_trees",
+      "method": "persistence",
+      "mae": 2.5120675281367237,
+      "rmse": 3.240418588741678,
+      "n": 95960
+    },
+    {
+      "horizon": 6,
+      "model": "gradient_boosted_trees",
+      "method": "selected_model",
+      "mae": 1.0986630301996763,
+      "rmse": 1.4944639651587848,
+      "n": 95960
+    }
+  ]
+}

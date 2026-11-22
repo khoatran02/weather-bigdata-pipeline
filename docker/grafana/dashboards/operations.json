@@ -1,0 +1,1060 @@
+{
+ "uid": "operations",
+ "title": "3. Vận hành và chất lượng",
+ "tags": [
+  "weather-bigdata"
+ ],
+ "timezone": "Asia/Ho_Chi_Minh",
+ "schemaVersion": 41,
+ "refresh": "30s",
+ "time": {
+  "from": "now-1h",
+  "to": "now"
+ },
+ "templating": {
+  "list": []
+ },
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "weather-bigdata"
+   ],
+   "title": "Dashboards",
+   "keepTime": false
+  }
+ ],
+ "panels": [
+  {
+   "title": "Broker Kafka",
+   "type": "stat",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "kafka_brokers",
+     "legendFormat": "brokers"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "custom": {},
+     "decimals": 0,
+     "noValue": "Chưa có"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "none",
+    "graphMode": "none",
+    "textMode": "value"
+   },
+   "id": 1
+  },
+  {
+   "title": "Partition thiếu replica",
+   "type": "stat",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 4,
+    "y": 0,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(kafka_topic_partition_under_replicated_partition)",
+     "legendFormat": "partitions"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "custom": {},
+     "decimals": 0,
+     "noValue": "Chưa có"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "none",
+    "graphMode": "none",
+    "textMode": "value"
+   },
+   "id": 2
+  },
+  {
+   "title": "Spark worker",
+   "type": "stat",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 0,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "count(up{job=\"spark-workers\"} == 1)",
+     "legendFormat": "workers"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "custom": {},
+     "decimals": 0,
+     "noValue": "Chưa có"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "none",
+    "graphMode": "none",
+    "textMode": "value"
+   },
+   "id": 3
+  },
+  {
+   "title": "Offset chưa xử lý",
+   "type": "stat",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"pipeline_metrics\")\n  |> range(start: -10m, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"streaming\" and r._field == \"offsets_behind\")\n  |> last()\n  |> group()\n  |> max()"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "custom": {},
+     "decimals": 0,
+     "noValue": "Chưa có"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "none",
+    "graphMode": "none",
+    "textMode": "value"
+   },
+   "id": 4
+  },
+  {
+   "title": "Kiểm tra chất lượng lỗi",
+   "type": "stat",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 0,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"pipeline_metrics\")\n  |> range(start: -14d, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"quality_check\" and r._field == \"passed\")\n  |> last()\n  |> map(fn: (r) => ({r with _value: 1.0 - r._value}))\n  |> group()\n  |> sum()"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "custom": {},
+     "decimals": 0,
+     "noValue": "Chưa có"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "none",
+    "graphMode": "none",
+    "textMode": "value"
+   },
+   "id": 5
+  },
+  {
+   "title": "Message đã vào Kafka",
+   "type": "stat",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "prometheus"
+   },
+   "gridPos": {
+    "x": 20,
+    "y": 0,
+    "w": 4,
+    "h": 4
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     },
+     "expr": "sum(kafka_topic_partition_current_offset{topic=~\"weather[.].*\"})",
+     "legendFormat": "messages"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "#3987e5"
+     },
+     "custom": {},
+     "decimals": 1,
+     "noValue": "Chưa có"
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "fields": "",
+     "values": false
+    },
+    "colorMode": "none",
+    "graphMode": "none",
+    "textMode": "value"
+   },
+   "id": 6
+  },
+  {
+   "title": "Số dòng mỗi micro-batch",
+   "type": "timeseries",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 4,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"pipeline_metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"streaming\" and r._field == \"input_rows\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"query\"])\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"query\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": 90000,
+      "axisSoftMin": null,
+      "insertNulls": 90000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "bronze_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Bronze live"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "bronze_history"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Bronze history"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "silver_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Silver live"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "silver_history"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Silver history"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "windows_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Windows live"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 7
+  },
+  {
+   "title": "Thời gian micro-batch",
+   "type": "timeseries",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 4,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"pipeline_metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"streaming\" and r._field == \"batch_ms\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"query\"])\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"query\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "ms",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": 90000,
+      "axisSoftMin": null,
+      "insertNulls": 90000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "bronze_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Bronze live"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "bronze_history"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Bronze history"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "silver_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Silver live"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "silver_history"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Silver history"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "windows_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Windows live"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 8
+  },
+  {
+   "title": "Tốc độ xử lý (dòng/giây)",
+   "type": "timeseries",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 13,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"pipeline_metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"streaming\" and r._field == \"processed_rows_per_second\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"query\"])\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"query\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": 90000,
+      "axisSoftMin": null,
+      "insertNulls": 90000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "bronze_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Bronze live"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "bronze_history"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Bronze history"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "silver_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Silver live"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "silver_history"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Silver history"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "windows_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Windows live"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 9
+  },
+  {
+   "title": "Dòng trong state store",
+   "type": "timeseries",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 13,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"pipeline_metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"streaming\" and r._field == \"state_rows\")\n  |> aggregateWindow(every: v.windowPeriod, fn: max, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"query\"])\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"query\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": 90000,
+      "axisSoftMin": null,
+      "insertNulls": 90000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "bronze_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Bronze live"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "bronze_history"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Bronze history"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "silver_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Silver live"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "silver_history"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Silver history"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "windows_live"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Windows live"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 10
+  },
+  {
+   "title": "ThingSpeak khớp METAR (%)",
+   "type": "table",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 22,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"weather_analytics\")\n  |> range(start: -90d, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"reconciliation\" and true)\n  |> group(columns: [\"_field\"])\n  |> mean()\n  |> map(fn: (r) => ({r with _value: r._value * 100.0}))\n  |> group()\n  |> keep(columns: [\"_field\", \"_value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {},
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {},
+   "id": 11
+  },
+  {
+   "title": "Cổng chất lượng dữ liệu",
+   "type": "table",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 22,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"pipeline_metrics\")\n  |> range(start: -14d, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"quality_check\" and true)\n  |> last()\n  |> pivot(rowKey: [\"check\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> keep(columns: [\"check\", \"passed\", \"value\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {}
+    },
+    "overrides": []
+   },
+   "options": {},
+   "id": 12
+  },
+  {
+   "title": "MAE trên tập test (°C)",
+   "type": "table",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 22,
+    "w": 8,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"weather_analytics\")\n  |> range(start: -90d, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"model_metrics\" and r._field == \"mae\")\n  |> last()\n  |> group()\n  |> keep(columns: [\"horizon\", \"method\", \"_value\"])\n  |> sort(columns: [\"horizon\", \"method\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {},
+     "decimals": 2
+    },
+    "overrides": []
+   },
+   "options": {},
+   "id": 13
+  }
+ ]
+}

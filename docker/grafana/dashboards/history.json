@@ -1,0 +1,1142 @@
+{
+ "uid": "history",
+ "title": "2. Khí hậu lịch sử (gold)",
+ "tags": [
+  "weather-bigdata"
+ ],
+ "timezone": "Asia/Ho_Chi_Minh",
+ "schemaVersion": 41,
+ "refresh": "",
+ "time": {
+  "from": "1980-01-01T00:00:00Z",
+  "to": "now"
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "station",
+    "label": "Trạm",
+    "type": "custom",
+    "query": "VVDN,VVNB,VVTS,VVCI,VVPB,VVDL,VVVD",
+    "multi": true,
+    "includeAll": true,
+    "current": {
+     "text": "All",
+     "value": "$__all"
+    },
+    "options": []
+   }
+  ]
+ },
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "weather-bigdata"
+   ],
+   "title": "Dashboards",
+   "keepTime": false
+  }
+ ],
+ "panels": [
+  {
+   "title": "Nhiệt độ trung bình năm",
+   "type": "timeseries",
+   "description": "8 giờ synop có trọng số bằng nhau, chỉ lấy năm đủ 12 tháng. Chuỗi chưa được đồng nhất hoá.",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 16,
+    "h": 10
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"weather_analytics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"annual\" and r.station =~ /^${station:regex}$/)\n  |> keep(columns: [\"_time\", \"_value\", \"station\"])\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"station\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "pointSize": 5,
+      "showPoints": "always",
+      "spanNulls": 63244800000,
+      "axisSoftMin": null,
+      "insertNulls": 63244800000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDN"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Đà Nẵng (VVDN)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVNB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Nội Bài (VVNB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVTS"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Tân Sơn Nhất (VVTS)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVCI"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Cát Bi (VVCI)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVPB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Phú Bài (VVPB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDL"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#008300"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Liên Khương (VVDL)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVVD"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#9085e9"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Vân Đồn (VVVD)"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 1
+  },
+  {
+   "title": "Xu hướng từ 1980 (chuỗi chưa đồng nhất hoá)",
+   "type": "table",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 0,
+    "w": 8,
+    "h": 10
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"weather_analytics\")\n  |> range(start: -30d, stop: now())\n  |> filter(fn: (r) => r._measurement == \"trend\" and true)\n  |> last()\n  |> pivot(rowKey: [\"station\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group()\n  |> keep(columns: [\"station\", \"celsius_per_decade\", \"r2\", \"years\", \"first_year\", \"last_year\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {}
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "station"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Trạm"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "celsius_per_decade"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "°C/10 năm"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "r2"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "R²"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "years"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Số năm"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "first_year"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Từ"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "last_year"
+      },
+      "properties": [
+       {
+        "id": "displayName",
+        "value": "Đến"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     }
+    ]
+   },
+   "options": {},
+   "transformations": [
+    {
+     "id": "organize",
+     "options": {
+      "indexByName": {
+       "station": 0,
+       "celsius_per_decade": 1,
+       "r2": 2,
+       "years": 3,
+       "first_year": 4,
+       "last_year": 5
+      }
+     }
+    }
+   ],
+   "id": 2
+  },
+  {
+   "title": "Nhiệt độ ngày cao nhất (max theo cửa sổ)",
+   "type": "timeseries",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 10,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"weather_analytics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.station =~ /^${station:regex}$/ and r._field == \"temperature_max\")\n  |> aggregateWindow(every: 90d, fn: max, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"station\"])\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"station\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "pointSize": 8,
+      "showPoints": "never",
+      "spanNulls": 17280000000,
+      "axisSoftMin": null,
+      "insertNulls": 17280000000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDN"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Đà Nẵng (VVDN)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVNB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Nội Bài (VVNB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVTS"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Tân Sơn Nhất (VVTS)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVCI"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Cát Bi (VVCI)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVPB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Phú Bài (VVPB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDL"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#008300"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Liên Khương (VVDL)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVVD"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#9085e9"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Vân Đồn (VVVD)"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 3
+  },
+  {
+   "title": "Nhiệt độ ngày thấp nhất (min theo cửa sổ)",
+   "type": "timeseries",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 10,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"weather_analytics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.station =~ /^${station:regex}$/ and r._field == \"temperature_min\")\n  |> aggregateWindow(every: 90d, fn: min, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"station\"])\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"station\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "pointSize": 8,
+      "showPoints": "never",
+      "spanNulls": 17280000000,
+      "axisSoftMin": null,
+      "insertNulls": 17280000000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDN"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Đà Nẵng (VVDN)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVNB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Nội Bài (VVNB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVTS"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Tân Sơn Nhất (VVTS)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVCI"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Cát Bi (VVCI)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVPB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Phú Bài (VVPB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDL"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#008300"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Liên Khương (VVDL)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVVD"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#9085e9"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Vân Đồn (VVVD)"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 4
+  },
+  {
+   "title": "Gió lớn nhất",
+   "type": "timeseries",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 19,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"weather_analytics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.station =~ /^${station:regex}$/ and r._field == \"wind_max\")\n  |> aggregateWindow(every: 90d, fn: max, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"station\"])\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"station\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "velocitykmh",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "pointSize": 8,
+      "showPoints": "never",
+      "spanNulls": 17280000000,
+      "axisSoftMin": null,
+      "insertNulls": 17280000000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDN"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Đà Nẵng (VVDN)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVNB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Nội Bài (VVNB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVTS"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Tân Sơn Nhất (VVTS)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVCI"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Cát Bi (VVCI)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVPB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Phú Bài (VVPB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDL"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#008300"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Liên Khương (VVDL)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVVD"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#9085e9"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Vân Đồn (VVVD)"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 5
+  },
+  {
+   "title": "Số giờ quan trắc mỗi ngày",
+   "type": "timeseries",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influx"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 19,
+    "w": 12,
+    "h": 9
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influx"
+     },
+     "query": "from(bucket: \"weather_analytics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"daily\" and r.station =~ /^${station:regex}$/ and r._field == \"hours\")\n  |> aggregateWindow(every: 90d, fn: mean, createEmpty: false)\n  |> keep(columns: [\"_time\", \"_value\", \"station\"])\n  |> group()\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"station\"], valueColumn: \"_value\")\n  |> sort(columns: [\"_time\"])"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "none",
+     "color": {
+      "mode": "palette-classic"
+     },
+     "custom": {
+      "drawStyle": "line",
+      "lineWidth": 2,
+      "fillOpacity": 0,
+      "pointSize": 8,
+      "showPoints": "never",
+      "spanNulls": 17280000000,
+      "axisSoftMin": null,
+      "insertNulls": 17280000000
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDN"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#3987e5"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Đà Nẵng (VVDN)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVNB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d95926"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Nội Bài (VVNB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVTS"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#199e70"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Tân Sơn Nhất (VVTS)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVCI"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#c98500"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Cát Bi (VVCI)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVPB"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#d55181"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Phú Bài (VVPB)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVDL"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#008300"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Liên Khương (VVDL)"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VVVD"
+      },
+      "properties": [
+       {
+        "id": "color",
+        "value": {
+         "mode": "fixed",
+         "fixedColor": "#9085e9"
+        }
+       },
+       {
+        "id": "displayName",
+        "value": "Vân Đồn (VVVD)"
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "legend": {
+     "displayMode": "list",
+     "placement": "bottom",
+     "showLegend": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 6
+  }
+ ]
+}

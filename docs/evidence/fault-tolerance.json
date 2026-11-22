@@ -1,0 +1,71 @@
+{
+ "passed": true,
+ "expected": {
+  "history": {
+   "bronze": 288000,
+   "silver": 270000,
+   "quarantine": 3000,
+   "temperature_sum": 6000000,
+   "bronze_distinct_offsets": 288000,
+   "silver_distinct_events": 270000
+  },
+  "live": {
+   "bronze": 45000,
+   "silver": 30000,
+   "quarantine": 0,
+   "temperature_sum": 600000,
+   "bronze_distinct_offsets": 45000,
+   "silver_distinct_events": 30000
+  }
+ },
+ "actual": {
+  "history": {
+   "bronze": 288000,
+   "silver": 270000,
+   "quarantine": 3000,
+   "temperature_sum": 6000000,
+   "bronze_distinct_offsets": 288000,
+   "silver_distinct_events": 270000
+  },
+  "live": {
+   "bronze": 45000,
+   "silver": 30000,
+   "quarantine": 0,
+   "temperature_sum": 600000,
+   "bronze_distinct_offsets": 45000,
+   "silver_distinct_events": 30000
+  }
+ },
+ "timeline": [
+  {
+   "second": 15,
+   "event": "SIGKILL Kafka broker 2",
+   "producer_running": true
+  },
+  {
+   "second": 30,
+   "event": "SIGKILL streaming driver",
+   "producer_running": true
+  },
+  {
+   "second": 40,
+   "event": "restart streaming driver from its checkpoint",
+   "producer_running": true
+  },
+  {
+   "second": 60,
+   "event": "SIGKILL Spark worker 1",
+   "producer_running": true
+  },
+  {
+   "second": 75,
+   "event": "restart Kafka broker 2",
+   "producer_running": true
+  },
+  {
+   "second": 90,
+   "event": "restart Spark worker 1",
+   "producer_running": true
+  }
+ ]
+}

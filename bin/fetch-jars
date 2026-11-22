@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Bake connector jars into the image so that no job downloads anything at runtime.
+#
+# An artifact that Spark already ships is never added again, whatever its version. The JVM
+# expands `jars/*` in directory order, so with two versions the winner differs between machines.
+set -euo pipefail
+
+packages=io.delta:delta-spark_4.1_2.13:${DELTA_VERSION}
+packages+=,org.apache.spark:spark-sql-kafka-0-10_2.13:${SPARK_VERSION}
+packages+=,org.apache.hadoop:hadoop-aws:${HADOOP_VERSION}
+
+artifact_id() { sed -E 's/-[0-9]+\.[0-9].*\.jar$//' <<<"$1"; }
+
+echo 'print("resolved")' > /tmp/noop.py
+/opt/spark/bin/spark-submit --master 'local[1]' --packages "$packages" \
+  --conf spark.jars.ivy=/tmp/ivy /tmp/noop.py
+
+duplicated() { for jar in /opt/spark/jars/*.jar; do artifact_id "$(basename "$jar")"; done | sort | uniq -d; }
+# The upstream image has a few legitimate duplicates (classifier jars); only new ones are errors.
+upstream_duplicates=$(duplicated)
+
+declare -A shipped
+for jar in /opt/spark/jars/*.jar; do
+  shipped[$(artifact_id "$(basename "$jar")")]=1
+done
+# RoaringBitmap 1.x, which Spark ships, absorbed the old "shims" artifact.
+shipped[shims]=1
+
+for jar in /tmp/ivy/jars/*.jar; do
+  name=$(basename "$jar")
+  name=${name#*_}
+  id=$(artifact_id "$name")
+  if [[ -n ${shipped[$id]:-} ]]; then
+    echo "keep Spark's $id (skip $name)"
+  else
+    cp "$jar" "/opt/spark/jars/$name"
+  fi
+done
+rm -rf /tmp/ivy /tmp/noop.py
+
+if [[ $(duplicated) != "$upstream_duplicates" ]]; then
+  echo "this build introduced conflicting jars:" >&2
+  duplicated >&2
+  exit 1
+fi

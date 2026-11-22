@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: weather
+    folder: Weather Big Data
+    type: file
+    allowUiUpdates: false
+    options: { path: /var/lib/grafana-dashboards }

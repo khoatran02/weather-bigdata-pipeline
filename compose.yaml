@@ -1,0 +1,284 @@
+name: ktxldll-weather
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "20m", max-file: "3" }
+
+x-app-env: &app-env
+  TZ: UTC
+  KAFKA_BOOTSTRAP: kafka-1:9092,kafka-2:9092,kafka-3:9092
+  INFLUX_URL: http://influxdb:8086
+  INFLUX_ORG: ktxldll
+  INFLUX_TOKEN: ${INFLUX_TOKEN:?run make env}
+  AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?run make env}
+  AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?run make env}
+  THINGSPEAK_CHANNEL: ${THINGSPEAK_CHANNEL:-3574112}
+  METAR_STATIONS: ${METAR_STATIONS:-VVDN,VVNB,VVTS,VVCI,VVPB,VVDL,VVVD}
+
+x-app: &app
+  image: ktxldll-weather/app:1.0
+  pull_policy: never
+  environment: *app-env
+  logging: *logging
+
+x-kafka-env: &kafka-env
+  CLUSTER_ID: 4L6g3nShT-eMCtK--X86sw
+  KAFKA_PROCESS_ROLES: broker,controller
+  KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+  KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+  KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+  KAFKA_MIN_INSYNC_REPLICAS: 2
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+  KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+  KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+  KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+  KAFKA_LOG_DIRS: /var/lib/kafka/data
+  KAFKA_HEAP_OPTS: -Xms384m -Xmx512m
+
+x-kafka: &kafka
+  image: apache/kafka:4.3.2
+  restart: unless-stopped
+  mem_limit: 1g
+  logging: *logging
+  healthcheck:
+    test: ["CMD-SHELL", "nc -z localhost 9092"]
+    interval: 10s
+    timeout: 5s
+    retries: 20
+
+x-worker: &worker
+  <<: *app
+  restart: unless-stopped
+  mem_limit: 5g
+  cpus: 4
+  command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker --cores 4 --memory 4g --work-dir /tmp/work spark://spark-master:7077
+  depends_on:
+    spark-master: { condition: service_healthy }
+
+services:
+  # ---------- transport ----------
+  kafka-1:
+    <<: *kafka
+    hostname: kafka-1
+    environment: { <<: *kafka-env, KAFKA_NODE_ID: 1, KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-1:9092" }
+    volumes: [kafka-1:/var/lib/kafka/data]
+  kafka-2:
+    <<: *kafka
+    hostname: kafka-2
+    environment: { <<: *kafka-env, KAFKA_NODE_ID: 2, KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-2:9092" }
+    volumes: [kafka-2:/var/lib/kafka/data]
+  kafka-3:
+    <<: *kafka
+    hostname: kafka-3
+    environment: { <<: *kafka-env, KAFKA_NODE_ID: 3, KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-3:9092" }
+    volumes: [kafka-3:/var/lib/kafka/data]
+
+  topics:
+    <<: *app
+    command: python3 -m weather_pipeline.ingest.topics
+    depends_on:
+      kafka-1: { condition: service_healthy }
+      kafka-2: { condition: service_healthy }
+      kafka-3: { condition: service_healthy }
+
+  # ---------- storage ----------
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.54
+    hostname: seaweedfs
+    restart: unless-stopped
+    mem_limit: 2g
+    logging: *logging
+    command: >-
+      server -dir=/data -ip=seaweedfs -ip.bind=0.0.0.0 -filer -s3
+      -master.volumeSizeLimitMB=1024 -volume.max=200 -metricsPort=9327
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?run make env}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?run make env}
+    volumes: [seaweedfs:/data]
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z seaweedfs 8333 && nc -z seaweedfs 8888"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  bucket:
+    image: chrislusf/seaweedfs:4.54
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        shell() { echo "$$1" | weed shell -master=seaweedfs:9333 -filer=seaweedfs:8888; }
+        shell "s3.bucket.list" | grep -qw lakehouse || shell "s3.bucket.create -name lakehouse"
+    depends_on:
+      seaweedfs: { condition: service_healthy }
+
+  influxdb:
+    image: influxdb:2.9.1
+    restart: unless-stopped
+    mem_limit: 3g
+    logging: *logging
+    ports: ["127.0.0.1:18086:8086"]
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASSWORD:?run make env}
+      DOCKER_INFLUXDB_INIT_ORG: ktxldll
+      DOCKER_INFLUXDB_INIT_BUCKET: weather_live
+      DOCKER_INFLUXDB_INIT_RETENTION: 90d
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:?run make env}
+    volumes:
+      - influxdb:/var/lib/influxdb2
+      - ./docker/influxdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # During first-run setup InfluxDB listens on a private port, so this waits for init scripts too.
+      test: ["CMD", "influx", "ping", "--host", "http://localhost:8086"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # ---------- processing ----------
+  spark-master:
+    <<: *app
+    hostname: spark-master
+    restart: unless-stopped
+    mem_limit: 1536m
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master --host spark-master
+    ports: ["127.0.0.1:18081:8080"]
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+  spark-worker-1:
+    <<: *worker
+    hostname: spark-worker-1
+  spark-worker-2:
+    <<: *worker
+    hostname: spark-worker-2
+
+  collector:
+    <<: *app
+    restart: unless-stopped
+    mem_limit: 256m
+    command: python3 -m weather_pipeline.ingest.collector
+    depends_on:
+      topics: { condition: service_completed_successfully }
+
+  streaming:
+    <<: *app
+    restart: unless-stopped
+    mem_limit: 2500m
+    command: >-
+      submit weather_pipeline.streaming.app
+      --conf spark.driver.memory=1536m
+      --conf spark.scheduler.mode=FAIR
+    ports: ["127.0.0.1:14040:4040"]
+    depends_on:
+      topics: { condition: service_completed_successfully }
+      bucket: { condition: service_completed_successfully }
+      influxdb: { condition: service_healthy }
+      spark-master: { condition: service_healthy }
+
+  # One-off jobs: docker compose run --rm job <command>
+  job:
+    <<: *app
+    profiles: [tools]
+    volumes: ["./data:/data:ro"]
+
+  airflow:
+    image: ktxldll-weather/airflow:1.0
+    pull_policy: never
+    restart: unless-stopped
+    mem_limit: 4g
+    logging: *logging
+    command:
+      - bash
+      - -c
+      - |
+        umask 077
+        printf '{"admin": "%s"}' "$$AIRFLOW_PASSWORD" > "$$AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE"
+        exec airflow standalone
+    ports: ["127.0.0.1:18083:8080"]
+    environment:
+      <<: *app-env
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+      AIRFLOW__CORE__PARALLELISM: "1" # batch jobs share four cluster cores, so run one at a time
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"
+      AIRFLOW__API__WORKERS: "1"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/state/airflow.db
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/state/passwords.json
+      AIRFLOW_PASSWORD: ${AIRFLOW_PASSWORD:?run make env}
+    volumes: [airflow:/opt/airflow/state, airflow-logs:/opt/airflow/logs]
+    depends_on:
+      spark-master: { condition: service_healthy }
+
+  # ---------- serving and observability ----------
+  prometheus:
+    image: prom/prometheus:v3.15.1
+    restart: unless-stopped
+    mem_limit: 512m
+    logging: *logging
+    ports: ["127.0.0.1:19090:9090"]
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus:/prometheus
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.9.0
+    restart: unless-stopped
+    mem_limit: 128m
+    logging: *logging
+    command: ["--kafka.server=kafka-1:9092", "--kafka.server=kafka-2:9092", "--kafka.server=kafka-3:9092"]
+    depends_on:
+      kafka-1: { condition: service_healthy }
+      kafka-2: { condition: service_healthy }
+      kafka-3: { condition: service_healthy }
+
+  kafka-ui:
+    image: kafbat/kafka-ui:v1.5.1
+    restart: unless-stopped
+    mem_limit: 768m
+    logging: *logging
+    ports: ["127.0.0.1:18082:8080"]
+    environment:
+      KAFKA_CLUSTERS_0_NAME: weather
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      KAFKA_CLUSTERS_0_READONLY: "true"
+    depends_on:
+      kafka-1: { condition: service_healthy }
+
+  grafana:
+    image: grafana/grafana:13.1.10
+    restart: unless-stopped
+    mem_limit: 1g
+    logging: *logging
+    ports: ["127.0.0.1:13000:3000"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?run make env}
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana-dashboards/realtime.json
+      INFLUX_TOKEN: ${INFLUX_TOKEN:?run make env}
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./docker/grafana/dashboards:/var/lib/grafana-dashboards:ro
+      - grafana:/var/lib/grafana
+    depends_on:
+      influxdb: { condition: service_healthy }
+
+volumes:
+  kafka-1:
+  kafka-2:
+  kafka-3:
+  seaweedfs:
+  influxdb:
+  prometheus:
+  grafana:
+  airflow:
+  airflow-logs:

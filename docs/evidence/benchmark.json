@@ -1,0 +1,130 @@
+{
+ "host": {
+  "cpu": "AMD Ryzen 5 4600H with Radeon Graphics",
+  "threads": 12
+ },
+ "dataset": {
+  "rows": 2426741,
+  "replicated_rows": 48534820
+ },
+ "scaling": {
+  "1": {
+   "median_s": 150.54,
+   "runs_s": [
+    150.54,
+    151.28,
+    150.18
+   ],
+   "speedup": 1.0,
+   "efficiency": 1.0
+  },
+  "2": {
+   "median_s": 80.56,
+   "runs_s": [
+    80.65,
+    80.56,
+    80.27
+   ],
+   "speedup": 1.87,
+   "efficiency": 0.94
+  },
+  "4": {
+   "median_s": 51.45,
+   "runs_s": [
+    51.45,
+    50.76,
+    51.95
+   ],
+   "speedup": 2.93,
+   "efficiency": 0.73
+  },
+  "8": {
+   "median_s": 39.3,
+   "runs_s": [
+    39.3,
+    39.24,
+    41.13
+   ],
+   "speedup": 3.83,
+   "efficiency": 0.48
+  }
+ },
+ "formats": {
+  "json": {
+   "bytes": 399769781,
+   "full_scan": {
+    "median_s": 1.73,
+    "runs_s": [
+     1.96,
+     1.73,
+     1.62
+    ]
+   },
+   "one_station_one_year": {
+    "median_s": 1.16,
+    "runs_s": [
+     1.29,
+     1.14,
+     1.16
+    ]
+   }
+  },
+  "csv": {
+   "bytes": 165370813,
+   "full_scan": {
+    "median_s": 1.16,
+    "runs_s": [
+     1.42,
+     1.16,
+     1.15
+    ]
+   },
+   "one_station_one_year": {
+    "median_s": 1.2,
+    "runs_s": [
+     1.26,
+     1.2,
+     1.17
+    ]
+   }
+  },
+  "parquet": {
+   "bytes": 29146784,
+   "full_scan": {
+    "median_s": 0.51,
+    "runs_s": [
+     0.54,
+     0.51,
+     0.51
+    ]
+   },
+   "one_station_one_year": {
+    "median_s": 0.62,
+    "runs_s": [
+     0.62,
+     0.59,
+     0.65
+    ]
+   }
+  },
+  "delta": {
+   "bytes": 19637875,
+   "full_scan": {
+    "median_s": 0.64,
+    "runs_s": [
+     0.71,
+     0.54,
+     0.64
+    ]
+   },
+   "one_station_one_year": {
+    "median_s": 0.48,
+    "runs_s": [
+     0.43,
+     0.53,
+     0.48
+    ]
+   }
+  }
+ }
+}

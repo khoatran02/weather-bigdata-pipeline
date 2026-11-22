@@ -1,0 +1,75 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: pipeline
+    folder: Weather Alerts
+    interval: 1m
+    rules:
+      - uid: live-data-stale
+        title: No fresh METAR for 2 hours
+        condition: C
+        for: 5m
+        noDataState: Alerting
+        execErrState: Error
+        data:
+          - refId: A
+            datasourceUid: influx
+            relativeTimeRange: { from: 7200, to: 0 }
+            model:
+              refId: A
+              query: |
+                from(bucket: "weather_live")
+                  |> range(start: -2h)
+                  |> filter(fn: (r) => r._measurement == "observation" and r.source == "aviationweather" and r._field == "temperature_c")
+                  |> group()
+                  |> count()
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions: [{ evaluator: { type: lt, params: [1] } }]
+      - uid: kafka-broker-down
+        title: Kafka broker down
+        condition: C
+        for: 1m
+        noDataState: Alerting
+        execErrState: Error
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange: { from: 300, to: 0 }
+            model: { refId: A, expr: kafka_brokers, instant: true }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions: [{ evaluator: { type: lt, params: [3] } }]
+      - uid: streaming-silent
+        title: Spark streaming stopped reporting
+        condition: C
+        for: 3m
+        noDataState: Alerting
+        execErrState: Error
+        data:
+          - refId: A
+            datasourceUid: influx
+            relativeTimeRange: { from: 300, to: 0 }
+            model:
+              refId: A
+              query: |
+                from(bucket: "pipeline_metrics")
+                  |> range(start: -5m)
+                  |> filter(fn: (r) => r._measurement == "streaming" and r._field == "input_rows")
+                  |> group()
+                  |> count()
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions: [{ evaluator: { type: lt, params: [1] } }]

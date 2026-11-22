@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Usage: submit <python module> [spark-submit options...] [-- application args...]
+set -euo pipefail
+
+module=${1:?python module, e.g. weather_pipeline.batch.gold}
+shift
+options=()
+while (($#)); do
+  if [[ $1 == -- ]]; then
+    shift
+    break
+  fi
+  options+=("$1")
+  shift
+done
+
+exec /opt/spark/bin/spark-submit \
+  --conf "spark.driver.host=$(hostname -i | awk '{print $1}')" \
+  --conf spark.driver.bindAddress=0.0.0.0 \
+  "${options[@]}" \
+  /opt/app/bin/run_module.py "$module" "$@"
